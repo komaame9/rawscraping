@@ -12,6 +12,19 @@ last_create=-1
 last_exist=-1
 last_update=-1
 
+class database():
+    def __init__(self):
+        self.conn = sqlite3.connect(env.DATABASE_NAME)
+        self.cur  = self.conn.cursor()
+
+    def execute(self, sql):
+        return self.cur.execute(sql)
+
+    def __del__(self):
+        self.conn.commit()
+        self.conn.close()
+
+
 def get_page(page=1):
     global last_create
     global last_exist
@@ -104,21 +117,35 @@ def get_title(id):
     if id < 1:
         return None
 
+    db = database()
+    
+    res = db.execute(f'SELECT name FROM pages WHERE id="{id}"')
+    if res.fetchone() is not None:
+        res = db.execute(f'SELECT * FROM pages WHERE id="{id}"')
+        return  res.fetchone()
+
+def set_favorite_by_id(id, favorite):
+    db = database()
+    db.execute(f'UPDATE pages SET favorite="{favorite}" WHERE id="{id}"')
+
+def set_favorite_by_name(name, favorite):
+    db = database()
+    db.execute(f'UPDATE pages SET favorite="{favorite}" WHERE name="{name}"')
+
+
+
+def save_thumbnail(id):
+    if id < 1:
+        return None
+
     conn = sqlite3.connect(env.DATABASE_NAME)
     cur  = conn.cursor()
     
     res = cur.execute(f'SELECT name FROM pages WHERE id="{id}"')
     if res.fetchone() is not None:
-        res = cur.execute(f'SELECT * FROM pages WHERE id="{id}"')
-        return  res.fetchone()
-
-    
-
-    
-
-def save_thumbnail():
-    name = "e69d4121528548bc83f585f6daa46c97.jpg"
-    req = requests.get("https://mangarawjp.tv/data/images/"+name)
+        res = cur.execute(f'SELECT img FROM pages WHERE id="{id}"')
+    name = res.fetchone()
+    req = requests.get(env.BASE_URL+name)
     f = open(name, "wb")
     f.write(req.content)
     f.close()
@@ -135,6 +162,15 @@ def update_all_pages():
     print("last_create page:", last_create)
     print("last_update page:", last_update)
     print("last exist page:", last_exist)
+
+def init():
+    conn = sqlite3.connect(env.DATABASE_NAME)
+    cur  = conn.cursor()
+    cur.execute(
+        "CREATE TABLE pages(id INTEGER PRIMARY KEY AUTOINCREMENT, name STRING, url STRING, img STRING, latest STRING, favorite INTEGER, updated DATE)"
+    )
+    conn.commit()
+    conn.close()
 
 def main():
     update_all_pages()
