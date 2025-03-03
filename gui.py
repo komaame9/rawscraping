@@ -30,17 +30,21 @@ def create_title(page: ft.Page, name, img, url, fav, latest, updated):
     title = ft.Card(
         content=ft.Row([
             favorite,
-            ft.Container(content=ft.Image(src=image_src, width=100), on_click=on_click_web),
-            ft.TextButton(title_name, on_click=on_click_web, expand=True),
+            ft.Container(content=ft.Image(src=image_src, width=150), on_click=on_click_web),
+            ft.Column([
+                ft.TextButton(title_name, on_click=on_click_web, expand=True),
+                ft.Text(f"{updated.split(' ')[0]} {latest}"),
+            ], expand=True),
         ]), 
-    width=400)
+    )
     #page.add(title)
     return title
 
 def main(page: ft.Page):
-    page.title = "rawscraping"
     page.scroll = ft.ScrollMode.ALWAYS
-    grid_view = ft.GridView(expand=1, runs_count=5, max_extent=400, child_aspect_ratio=1.0, spacing=5, run_spacing=5)
+    page.add(ft.Row([ft.IconButton(icon=ft.Icons.STAR), ft.IconButton(icon=ft.Icons.OTHER_HOUSES)]))
+
+    grid_view = ft.GridView(expand=1, runs_count=5, max_extent=600, child_aspect_ratio=1.0, spacing=5, run_spacing=5)
     for i in range(100):
         id = i+1 
         db_id, db_name, db_url, db_img, db_latest, db_favorite, db_updated = db_model.get_title(id)
