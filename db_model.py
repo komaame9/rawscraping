@@ -12,6 +12,20 @@ last_create=-1
 last_exist=-1
 last_update=-1
 
+class title():
+    def __init__(self, id, name, url, img, latest, favorite, updated):
+        self.id = id
+        self.name = name
+        self.url = url
+        self.img = img
+        self.latest = latest
+        self.favorite = favorite
+        self.updated = updated
+
+    def set_favorite(self, favorite):
+        self.favorite = favorite
+        set_favorite_by_name(self.name, self.favorite)
+
 class database():
     def __init__(self):
         self.conn = sqlite3.connect(env.DATABASE_NAME)
@@ -24,6 +38,14 @@ class database():
         self.conn.commit()
         self.conn.close()
 
+def get_all():
+    titles = []
+    db = database()
+    res = db.execute(f'SELECT * FROM pages')
+    data = res.fetchall()
+    for d in data:
+        titles.append(title(d[0], d[1], d[2], d[3], d[4], d[5], d[6]))
+    return titles
 
 def get_page(page=1):
     global last_create
@@ -65,7 +87,7 @@ def get_page(page=1):
                 res = cur.execute(f'SELECT * FROM pages WHERE name="{name}"')
                 id, db_name, db_url, db_img, db_latest, db_favorite, db_updated = res.fetchone()
                 if db_latest != latest:
-                    cur.execute(f'UPDATE pages SET latest="{latest}" WHERE name="{name}"')
+                    cur.execute(f'UPDATE pages SET latest="{latest}", updated="{date}" WHERE name="{name}"')
                     print(f'UPDATE {name} db:{db_latest} web:{latest} updated:{date}')
                     list_update.append(name)
                     last_update=page
