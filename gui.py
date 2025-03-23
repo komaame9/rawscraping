@@ -118,6 +118,8 @@ def main(page: ft.Page):
         nonlocal favorite
         if not favorite:
             change_page_label()
+    def on_click_update(e):
+        db_model.update_all_pages()
 
     def change_page_label():
         nonlocal start_page
@@ -142,6 +144,7 @@ def main(page: ft.Page):
     star_button = ft.IconButton(icon=ft.Icons.STAR, on_click=on_click_star)
     home_button = ft.IconButton(icon=ft.Icons.OTHER_HOUSES, on_click=on_click_home)
     search_input = ft.TextField(label="search", on_submit=on_search_submit)
+    update_button = ft.IconButton(icon=ft.Icons.ARROW_CIRCLE_DOWN, on_click=on_click_update)
 
 
     grid_view = ft.GridView(expand=1, runs_count=5, max_extent=600, child_aspect_ratio=1.5, spacing=5, run_spacing=5)
@@ -149,7 +152,7 @@ def main(page: ft.Page):
     titles.sort(key=attrgetter('updated'), reverse=True)
     page_label = ft.Text("")
 
-    page.add(ft.Row([star_button, home_button, search_input, page_label]))
+    page.add(ft.Row([star_button, home_button, search_input, page_label, update_button]))
     page.add(grid_view)
     grid_view_update()
     change_page_label()
