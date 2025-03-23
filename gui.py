@@ -148,7 +148,7 @@ def main(page: ft.Page):
 
 
     grid_view = ft.GridView(expand=1, runs_count=5, max_extent=600, child_aspect_ratio=1.5, spacing=5, run_spacing=5)
-    titles = db_model.get_all()
+    titles = []#db_model.get_all()
     titles.sort(key=attrgetter('updated'), reverse=True)
     page_label = ft.Text("")
 
