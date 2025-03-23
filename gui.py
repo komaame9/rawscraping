@@ -158,5 +158,7 @@ def main(page: ft.Page):
     change_page_label()
     page.update()
 
+    with open('test.txt', mode="w") as f:
+        f.write("this is test text")
     
 ft.app(main)
