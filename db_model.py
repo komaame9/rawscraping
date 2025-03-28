@@ -4,6 +4,8 @@ import sqlite3
 import env
 import datetime
 
+import base64
+
 
 list_create = []
 list_exist = []
@@ -61,8 +63,7 @@ def get_page(page=1):
     bsObj = BeautifulSoup(req.text,"html.parser")
 
     # Open DB
-    conn = sqlite3.connect(env.DATABASE_NAME)
-    cur  = conn.cursor()
+    db = database()
 
     for i in bsObj.find_all('div', class_="post-list"):
         for j in i.find_all("a") :
@@ -77,17 +78,20 @@ def get_page(page=1):
                 latest = latest[latest.find("【" ) : latest.find("】")+1]
             favorite = 0
             print('GET:', name, url, img, latest, favorite, date)
-            res = cur.execute(f'SELECT name FROM pages WHERE name="{name}"')
+            res = db.execute(f'SELECT id FROM pages WHERE name="{name}"')
             if res.fetchone() is None:
-                cur.execute(f'INSERT INTO pages(name, url, img, latest, favorite, updated) values("{name}", "{url}", "{img}", "{latest}", {favorite}, "{date}")')
+                db.execute(f'INSERT INTO pages(name, url, img, latest, favorite, updated) values("{name}", "{url}", "{img}", "{latest}", {favorite}, "{date}")')
+                update_base64(img, db)
                 print(f'CREATE {name}')
                 list_create.append(name)
                 last_create=page
             else :
-                res = cur.execute(f'SELECT * FROM pages WHERE name="{name}"')
+                res = db.execute(f'SELECT * FROM pages WHERE name="{name}"')
                 id, db_name, db_url, db_img, db_latest, db_favorite, db_updated = res.fetchone()
                 if db_latest != latest:
-                    cur.execute(f'UPDATE pages SET latest="{latest}", updated="{date}" WHERE name="{name}"')
+                    db.execute(f'UPDATE pages SET latest="{latest}", updated="{date}" WHERE name="{name}"')
+                    if (not has_base64(id, db)):
+                        update_base64(img, db)
                     print(f'UPDATE {name} db:{db_latest} web:{latest} updated:{date}')
                     list_update.append(name)
                     last_update=page
@@ -95,8 +99,6 @@ def get_page(page=1):
                     print(f'EXIST {name}')
                     list_exist.append(name)
                     last_exist=page
-    conn.commit()
-    conn.close()
 
 
 def get_last_page():
@@ -172,6 +174,45 @@ def save_thumbnail(id):
     f.write(req.content)
     f.close()
 
+def has_base64(id, db):
+    res = db.execute(f'SELECT EXISTS(SELECT id FROM base64 WHERE id="{id}")')
+    return res.fetchone()[0] == 0
+
+def update_base64(url, db):
+    res = db.execute(f'SELECT id FROM pages WHERE img="{url}"')
+    id = res.fetchone()
+    image_base64 = None
+    if id is not None:
+        image_src = env.BASE_URL+url
+        req = requests.get(image_src)
+        image_base64 = base64.b64encode(req.content).decode()
+        res = db.execute(f'SELECT EXISTS(SELECT id FROM base64 WHERE id="{id}")')
+        if res.fetchone()[0] == 0:
+            print('Base64 inserted:', id)
+            db.execute(f'INSERT INTO base64(id, img_base64) values("{id}", "{image_base64}")')
+        else:
+            print('Base64 updated:', id)
+            db.execute(f'UPDATE base64 SET img_base64="{image_base64}" WHERE id="{id}"')
+    else:
+        print(f'[update_base64]:{url} is not found in TABLE(pages)')
+    return image_base64
+
+def get_base64(url):
+    db = database()
+    res = db.execute(f'SELECT id FROM pages WHERE img="{url}"')
+    id = res.fetchone()
+    image_base64 = None
+    if id is not None:
+        res = db.execute(f'SELECT EXISTS(SELECT id FROM base64 WHERE id="{id}")')
+        if res.fetchone()[0] == 1:
+            res = db.execute(f'SELECT img_base64 FROM base64 WHERE id="{id}"')
+            image_base64 = res.fetchone()[0]
+        else:
+            image_base64 = update_base64(url, db)
+    else:
+        print(f'[get_base64]:{url} is not found in TABLE(pages)')
+    return image_base64
+
 def update_all_pages():
     last_page = get_last_page()
     for i in range(last_page):
@@ -190,6 +231,7 @@ def init():
     cur  = conn.cursor()
     cur.execute(
         "CREATE TABLE pages(id INTEGER PRIMARY KEY AUTOINCREMENT, name STRING, url STRING, img STRING, latest STRING, favorite INTEGER, updated DATE)"
+        "CREATE TABLE base64(id INTEGER, img_bas64 STRING)"
     )
     conn.commit()
     conn.close()
