@@ -14,6 +14,9 @@ last_create=-1
 last_exist=-1
 last_update=-1
 
+update_page_max=100
+update_page_now=0
+
 class title():
     def __init__(self, id, name, url, img, latest, favorite, updated):
         self.id = id
@@ -214,8 +217,11 @@ def get_base64(url):
     return image_base64
 
 def update_all_pages():
+    global update_page_max, update_page_now
     last_page = get_last_page()
+    update_page_max = last_page
     for i in range(last_page):
+        update_page_now = i
         print("PAGE:", i)
         get_page(i)
 
