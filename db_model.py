@@ -237,6 +237,8 @@ def init():
     cur  = conn.cursor()
     cur.execute(
         "CREATE TABLE pages(id INTEGER PRIMARY KEY AUTOINCREMENT, name STRING, url STRING, img STRING, latest STRING, favorite INTEGER, updated DATE)"
+    )
+    cur.execute(
         "CREATE TABLE base64(id INTEGER, img_bas64 STRING)"
     )
     conn.commit()
