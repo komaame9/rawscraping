@@ -141,6 +141,9 @@ def main(page: ft.Page):
         update_titles()
         nonlocal favorite
         nonlocal start_page
+        nonlocal search_input
+        search_input.value=""
+        search_input.update()
         favorite = False
         start_page = 0
         grid_view_update()
@@ -177,12 +180,10 @@ def main(page: ft.Page):
                 change_page_label()
         
     def on_keyboard_event(e:ft.KeyboardEvent):
-        delta = 0
         if (e.key=="Arrow Up" or e.key=="Arrow Left"):
-            delta = - TITLE_NUM_PER_PAGE
+            change_page(-TITLE_NUM_PER_PAGE)
         if (e.key=="Arrow Down" or e.key=="Arrow Right"):
-            delta =   TITLE_NUM_PER_PAGE
-        change_page(delta)
+            change_page(TITLE_NUM_PER_PAGE)
 
     def change_page_label():
         nonlocal start_page
@@ -238,8 +239,5 @@ def main(page: ft.Page):
     change_page_label()
     page.title=PAGE_TITLE
     page.update()
-
-    with open('test.txt', mode="w") as f:
-        f.write("this is test text")
     
 ft.app(main)
