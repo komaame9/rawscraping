@@ -80,8 +80,10 @@ def main(page: ft.Page):
         
         image_src= env.BASE_URL + img
         title_name=name
-        if title_name.endswith(" Raw Free"):
-            title_name = title_name[:-len(" Raw Free")]
+        cut_list = [" Raw Free", " @COMIC", "Raw Free", "@COMIC", " "]
+        for cut_word in cut_list:
+            if title_name.endswith(cut_word):
+                title_name = title_name[:-len(cut_word)]
         favorite = ft.IconButton(icon=ft.Icons.STAR, on_click=on_click_fav)
         if fav != 1:
             favorite.icon = ft.Icons.STAR_BORDER

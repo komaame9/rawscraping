@@ -220,10 +220,13 @@ def update_all_pages():
     global update_page_max, update_page_now
     last_page = get_last_page()
     update_page_max = last_page
+    thresh_pages = 10
     for i in range(last_page):
         update_page_now = i
         print("PAGE:", i)
         get_page(i)
+        if (last_create+thresh_pages<i) and (last_update+thresh_pages<i):
+            break
 
     print("new titles:", list_create)
     print("list_update:",len(list_update))
