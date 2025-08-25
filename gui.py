@@ -19,13 +19,22 @@ class PageUpdateRow(ft.Row):
         self.progress_bar = ft.ProgressBar(width=200, visible=False)
         self.label = ft.Text("", visible=False)
         self.update_button = ft.IconButton(icon=ft.Icons.ARROW_CIRCLE_DOWN, on_click=self.on_click_update)
-        self.controls = [self.update_button, self.progress_bar, self.label]
+        self.error_label = ft.Text("", visible=False)
+        self.controls = [self.update_button, self.progress_bar, self.label, self.error_label]
 
     def on_click_update(self, e):
         self.running = True
         self.page.run_task(self.run)
         self.page.update()
-        db_model.update_all_pages()
+        self.error_label.visible = False
+        self.error_label.update()
+        try:
+            db_model.update_all_pages()
+        except Exception as e:
+            self.error_label.visible = True
+            self.error_label.value = f"{e}"
+            self.error_label.update()
+
         self.running = False
 
     async def run(self):
